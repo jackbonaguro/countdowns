@@ -113,7 +113,7 @@ export default function HomeScreen() {
         <TouchableOpacity onPress={async () => {
           setSettingsVisible(true);
         }}>
-          <Text style={{ fontSize: 38, color: 'grey', fontWeight: 'bold', opacity: 0.5 }}>⚙</Text>
+          <Text style={{ fontSize: 38, color: 'grey', fontWeight: 'bold', opacity: 0.5 }}>⚙️</Text>
         </TouchableOpacity>
         <Modal
           visible={settingsVisible}
