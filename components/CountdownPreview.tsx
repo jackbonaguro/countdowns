@@ -110,10 +110,7 @@ export default function CountdownPreview({
             </View>
             <View style={{ paddingVertical: 16, alignItems: 'flex-start' }}>
               <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{countdown.title}</Text>
-              <Text style={{ color: '#fff', marginTop: 8 }}>{fixedDate}{fixedTime}{countdownParams?.differenceNumber}</Text>
-              {/* <Text style={{ color: '#fff', marginTop: 8 }}>{JSON.stringify(date)}</Text>
-              <Text style={{ color: '#fff', marginTop: 8 }}>{JSON.stringify(time)}</Text>
-              <Text style={{ color: '#fff', marginTop: 8 }}>{JSON.stringify(combinedDate)}</Text> */}
+              <Text style={{ color: '#fff', marginTop: 8 }}>{fixedDate}{fixedTime}</Text>
             </View>
           </View>
           {countdownParams && <View style={{

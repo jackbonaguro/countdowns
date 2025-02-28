@@ -3,45 +3,16 @@ import CountdownPreview from '@/components/CountdownPreview';
 import { useCountdowns, Countdown } from '@/store/useCountdowns';
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import notifee from '@notifee/react-native';
 import * as DatabaseController from '@/controllers/DatabaseController';
 import * as NotificationController from '@/controllers/NotificationController';
 import { useSQLiteContext } from 'expo-sqlite';
+import SettingsForm from '@/components/SettingsForm';
+import Modal from '@/components/Modal';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
-async function onDisplayNotification() {
-  // Request permissions (required for iOS)
-  await notifee.requestPermission()
-
-  // Create a channel (required for Android)
-  const channelId = await notifee.createChannel({
-    id: 'default',
-    name: 'Default Channel',
-  });
-
-  // Display a notification
-  await notifee.displayNotification({
-    title: 'Notification Title',
-    body: 'Main body content of the notification',
-    android: {
-      channelId,
-      smallIcon: 'name-of-a-small-icon', // optional, defaults to 'ic_launcher'.
-      // pressAction is needed if you want the notification to open the app when pressed
-      pressAction: {
-        id: 'default',
-      },
-    },
-  });
-}
+// Do this as soon as possible when app is loaded, not in the component's lifecycle.
+NotificationController.subscribeToBackgroundNotifications();
 
 function CountdownsList(props: { sort: 'asc' | 'desc' }) {
   const { data: countdowns, isLoading } = useCountdowns();
@@ -96,31 +67,33 @@ export default function HomeScreen() {
   }, []);
 
   const [sort, setSort] = useState<'asc' | 'desc'>('asc');
-
+  const [settingsVisible, setSettingsVisible] = useState(false);
   return (
-    <View style={{ flex: 1 }}>
-      <View style={{
-        paddingHorizontal: 16,
-        paddingBottom: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <Button title="Sort" onPress={async () => {
-          setSort(sort === 'asc' ? 'desc' : 'asc');
-        }} />
-        <Link href='/createCountdown' asChild>
-          <Button title="Add" onPress={async () => {}} />
-        </Link>
+    <View style={{ flex: 1, justifyContent: 'space-between' }}>
+      <View style={{ flex: 1 }}>
+        <View style={{
+          paddingHorizontal: 16,
+          paddingBottom: 8,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <Button title="Sort" onPress={async () => {
+            setSort(sort === 'asc' ? 'desc' : 'asc');
+          }} />
+          <Link href='/createCountdown' asChild>
+            <Button title="Add" onPress={async () => {}} />
+          </Link>
+        </View>
+        <ScrollView style={{
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+        }}>
+          <Text style={styles.text}>Countdowns</Text>
+          <CountdownsList sort={sort}/>
+        </ScrollView>
       </View>
-      <ScrollView style={{
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-      }}>
-        <Text style={styles.text}>Countdowns</Text>
-        <CountdownsList sort={sort}/>
-      </ScrollView>
-      <Button title="Test Notification" onPress={async () => {
+      {/* <Button title="Test Notification" onPress={async () => {
         Notifications.scheduleNotificationAsync({
           content: {
             title: 'Look at that notification',
@@ -130,7 +103,24 @@ export default function HomeScreen() {
         });
 
         await onDisplayNotification();
-      }} />
+      }} /> */}
+      <View style={{
+        flexDirection: 'row',
+        paddingHorizontal: 16,
+        alignItems: 'center',
+        justifyContent: 'flex-end'
+      }}>
+        <TouchableOpacity onPress={async () => {
+          setSettingsVisible(true);
+        }}>
+          <Text style={{ fontSize: 38, color: 'grey', fontWeight: 'bold', opacity: 0.5 }}>⚙</Text>
+        </TouchableOpacity>
+        <Modal
+          visible={settingsVisible}
+        >
+          <SettingsForm onClose={() => setSettingsVisible(false)} />
+        </Modal>
+      </View>
     </View>
   );
 }

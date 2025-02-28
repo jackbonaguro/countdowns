@@ -8,6 +8,7 @@ export async function initialize() {
   if (initialized) return;
 
   await requestUserPermission();
+  await subscribeToNotifications();
   initialized = true;
 }
 export function isInitialized() {
@@ -30,9 +31,25 @@ export async function requestUserPermission() {
 }
 
 let unsubscribe: () => void;
-
 export async function subscribeToNotifications() {
   unsubscribe = messaging().onMessage((remoteMessage) => {
     Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
   });
 }
+export async function subscribeToBackgroundNotifications() {
+  messaging().setBackgroundMessageHandler(async remoteMessage => {
+    // Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
+    console.log('A new background FCM message arrived!', JSON.stringify(remoteMessage));
+  });
+}
+
+export async function getDeviceToken() {
+  try {
+    const token = await messaging().getToken();
+    return token;
+  } catch (error) {
+    console.error('Error getting device token', error);
+    throw error;
+  }
+};
+

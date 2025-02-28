@@ -1,5 +1,4 @@
-import { Modal, Switch, Text, View } from "react-native";
-import styled from "styled-components/native";
+import { Modal, View } from "react-native";
 import DatePicker from 'react-native-date-picker'
 import { useEffect, useState } from "react";
 import { formatDate } from "date-fns";
@@ -8,20 +7,9 @@ import CountdownPreview, { CountdownPreviewSkeleton } from "./CountdownPreview";
 import EmojiInput from "./EmojiInput";
 import { Countdown } from "@/store/useCountdowns";
 import ColorPicker from "./ColorPicker";
-
-const Form = styled.View`
-  gap: 8px;
-  padding-vertical: 16px;
-`;
-const FormLabel = styled.Text`
-  font-size: 14px;
-`;
-const FormInput = styled.TextInput`
-  border-width: 1px;
-  border-color: #ccc;
-  border-radius: 4px;
-  padding: 8px;
-`;
+import Form from "./Form";
+import FormLabel from "./FormLabel";
+import FormInput from "./FormInput";
 
 export default function CountdownEditor(props: {
   initialCountdown?: Omit<Countdown, 'id'>;

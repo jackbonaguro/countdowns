@@ -1,5 +1,4 @@
 import EmojiSelector from "react-native-emoji-selector";
-import Animated from "react-native-reanimated";
 import Button from "./Button";
 import { SafeAreaView, View } from "react-native";
 
