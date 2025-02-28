@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import CountdownEditor from "@/components/CountdownEditor";
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import { Countdown, useCountdowns, useDeleteCountdown, useEditCountdown } from "@/store/useCountdowns";
 import { useSQLiteContext } from "expo-sqlite";
@@ -32,9 +32,14 @@ export default function EditCountdown() {
             router.back();
           }} />
           <Button title="Delete" onPress={async () => {
-            console.log('delete countdown', id);
-            await deleteCountdown(id);
-            router.back();
+            Alert.alert('Delete Countdown', 'Are you sure you want to delete this countdown?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Delete', style: 'destructive', onPress: async () => {
+                console.log('delete countdown', id);
+                await deleteCountdown(id);
+                router.back();
+              } },
+            ]);
           }} />
         </View>
         <ScrollView style={{
