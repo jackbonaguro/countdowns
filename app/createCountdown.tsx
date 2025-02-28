@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Countdown, useCreateCountdown } from "@/store/useCountdowns";
 export default function CreateCountdown() {
   const [valid, setValid] = useState(false);
-  const [draftCountdown, setDraftCountdown] = useState<Countdown>();
+  const [draftCountdown, setDraftCountdown] = useState<Omit<Countdown, 'id'>>();
 
   const { mutateAsync: createCountdown } = useCreateCountdown();
 

@@ -3,20 +3,20 @@ import CountdownEditor from "@/components/CountdownEditor";
 import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
-import { Countdown, useCountdowns, useEditCountdown } from "@/store/useCountdowns";
-import { deleteCountdown } from "@/controllers/storageController";
-import { useQueryClient } from "@tanstack/react-query";
+import { Countdown, useCountdowns, useDeleteCountdown, useEditCountdown } from "@/store/useCountdowns";
+import { useSQLiteContext } from "expo-sqlite";
 export default function EditCountdown() {
   const [valid, setValid] = useState(false);
   const [draftCountdown, setDraftCountdown] = useState<Countdown>();
   
-  const queryClient = useQueryClient();
+  const db = useSQLiteContext();
   const { mutateAsync: editCountdown } = useEditCountdown();
+  const { mutateAsync: deleteCountdown } = useDeleteCountdown();
 
-  const { index: indexStr } = useLocalSearchParams();
-  const index = parseInt(indexStr as string);
+  const { id: idStr } = useLocalSearchParams();
+  const id = parseInt(idStr as string);
   const { data: countdowns } = useCountdowns();
-  const countdown = countdowns?.[index];
+  const countdown = countdowns?.find(c => c?.id === id);
 
   return (
     <View style={{ flex: 1 }}>
@@ -31,9 +31,8 @@ export default function EditCountdown() {
             router.back();
           }} />
           <Button title="Delete" onPress={async () => {
-            console.log('delete countdown', index);
-            await deleteCountdown(index, queryClient);
-            await queryClient.invalidateQueries({ queryKey: ['countdowns'] });
+            console.log('delete countdown', id);
+            await deleteCountdown(id);
             router.back();
           }} />
         </View>
@@ -42,9 +41,12 @@ export default function EditCountdown() {
         }}>
           <Text style={{ fontSize: 32, fontWeight: 'bold' }}>Edit Countdown</Text>
           <CountdownEditor
-            countdown={countdown}
+            initialCountdown={countdown}
             onValidate={(countdown, valid) => {
-              setDraftCountdown(countdown);
+              setDraftCountdown({
+                ...countdown,
+                id,
+              });
               setValid(valid);
             }} />
         </ScrollView>
@@ -66,7 +68,6 @@ export default function EditCountdown() {
           onPress={async () => {
             if (!draftCountdown) return;
             await editCountdown({
-              index,
               countdown: draftCountdown,
             });
             router.back();

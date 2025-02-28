@@ -24,23 +24,23 @@ const FormInput = styled.TextInput`
 `;
 
 export default function CountdownEditor(props: {
-  onValidate: (countdown: Countdown, valid: boolean) => void;
-  countdown?: Countdown;
+  initialCountdown?: Omit<Countdown, 'id'>;
+  onValidate: (countdown: Omit<Countdown, 'id'>, valid: boolean) => void;
 }) {
-  const [title, setTitle] = useState<string | undefined>(props.countdown?.title);
+  const [title, setTitle] = useState<string | undefined>(props.initialCountdown?.title);
 
-  const [date, setDate] = useState<Date | undefined>(props.countdown?.date);
+  const [date, setDate] = useState<Date | undefined>(props.initialCountdown?.date);
   const [showDate, setShowDate] = useState(false);
   const dateLabel = !!date ? formatDate(date, 'MMM d, yyyy') : 'Select Date';
 
-  const [time, setTime] = useState<Date | undefined>(props.countdown?.time);
+  const [time, setTime] = useState<Date | undefined>(props.initialCountdown?.time);
   const [showTime, setShowTime] = useState(false);
   const timeLabel = !!time ? formatDate(time, 'h:mm a') : 'All Day';
 
-  const [emoji, setEmoji] = useState<string | undefined>(props.countdown?.emoji);
+  const [emoji, setEmoji] = useState<string | undefined>(props.initialCountdown?.emoji);
   const [showEmoji, setShowEmoji] = useState(false);
 
-  const [hue, setHue] = useState<number | undefined>(props.countdown?.hue);
+  const [hue, setHue] = useState<number | undefined>(props.initialCountdown?.hue);
 
 
   const previewReady = !!title && !!date && !!emoji && typeof hue !== 'undefined';

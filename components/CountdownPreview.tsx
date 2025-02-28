@@ -33,10 +33,10 @@ export function CountdownPreviewSkeleton(props: {
 
 export default function CountdownPreview({
   countdown,
-  index,
+  id,
 }: {
-  countdown: Countdown;
-  index?: number;
+  countdown: Omit<Countdown, 'id'>;
+  id?: number;
 }) {
   const updateCountdown = () => {
     const now = Date.now();
@@ -80,12 +80,12 @@ export default function CountdownPreview({
     updateCountdown();
     const updateInterval = setInterval(updateCountdown, 1000);
     return () => clearInterval(updateInterval);
-  }, [countdown.date]);
+  }, [countdown.date, countdown.time]);
 
   const [countdownParams, setCountdownParams] = useState<CountdownParams>();
   
   return (
-    <Link href={typeof index !== 'undefined' ? `/editCountdown/${index}` : '/'} asChild disabled={typeof index === 'undefined'}>
+    <Link href={typeof id !== 'undefined' ? `/editCountdown/${id}` : '/'} asChild disabled={typeof id === 'undefined'}>
       <TouchableOpacity>
         <View 
           style={{
@@ -111,7 +111,7 @@ export default function CountdownPreview({
             </View>
             <View style={{ paddingVertical: 16, alignItems: 'flex-start' }}>
               <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>{countdown.title}</Text>
-              <Text style={{ color: '#fff', marginTop: 8 }}>{fixedDate}{fixedTime}</Text>
+              <Text style={{ color: '#fff', marginTop: 8 }}>{fixedDate}{fixedTime}{countdownParams?.differenceNumber}</Text>
               {/* <Text style={{ color: '#fff', marginTop: 8 }}>{JSON.stringify(date)}</Text>
               <Text style={{ color: '#fff', marginTop: 8 }}>{JSON.stringify(time)}</Text>
               <Text style={{ color: '#fff', marginTop: 8 }}>{JSON.stringify(combinedDate)}</Text> */}

@@ -1,13 +1,13 @@
 import Button from '@/components/Button';
 import CountdownPreview from '@/components/CountdownPreview';
-import { initialize } from '@/controllers/storageController';
 import { useCountdowns, Countdown } from '@/store/useCountdowns';
-import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import notifee from '@notifee/react-native';
+import * as DatabaseController from '@/controllers/DatabaseController';
+import { useSQLiteContext } from 'expo-sqlite';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -42,8 +42,8 @@ async function onDisplayNotification() {
   });
 }
 
-function CountdownsList(props: { initialized: boolean, sort: 'asc' | 'desc' }) {
-  const { data: countdowns } = useCountdowns();
+function CountdownsList(props: { sort: 'asc' | 'desc' }) {
+  const { data: countdowns, isLoading } = useCountdowns();
 
   const countdownsWithIndex: undefined | {
     index: number;
@@ -63,7 +63,7 @@ function CountdownsList(props: { initialized: boolean, sort: 'asc' | 'desc' }) {
   });
 
   // @ts-ignore
-  if (!props.initialized || !countdownsSorted) return (<></>);
+  if (isLoading || !countdownsSorted) return (<></>);
 
   return (
     <View style={{
@@ -72,24 +72,25 @@ function CountdownsList(props: { initialized: boolean, sort: 'asc' | 'desc' }) {
     }}>
       {countdownsSorted.map((cdi, index) => {
         if (!cdi.countdown) return null;
-        return (<CountdownPreview key={index} countdown={cdi.countdown} index={cdi.index} />);
+        return (<CountdownPreview key={index} countdown={cdi.countdown} id={cdi.countdown.id} />);
       })}
     </View>
   );
 }
 
 export default function HomeScreen() {
-  const queryClient = useQueryClient();
+  const db = useSQLiteContext();
 
-  const [initialized, setInitialized] = useState(false);
+  // Initialize all controllers
   useEffect(() => {
     (async () => {
-      if (!initialized) {
-        await initialize(queryClient);
-        setInitialized(true);
-      }
+      if (DatabaseController.isInitialized()) return;
+      await DatabaseController.initialize();
+      await DatabaseController.refreshCountdowns(db);
     })();
-  }, [initialized]);
+  }, []);
+
+  // const [counter, setCounter] = useState<number>();
 
   const [sort, setSort] = useState<'asc' | 'desc'>('asc');
 
@@ -112,7 +113,7 @@ export default function HomeScreen() {
         padding: 16,
       }}>
         <Text style={styles.text}>Countdowns</Text>
-        <CountdownsList initialized={initialized} sort={sort}/>
+        <CountdownsList sort={sort}/>
       </ScrollView>
       <Button title="Test Notification" onPress={async () => {
         Notifications.scheduleNotificationAsync({
@@ -125,6 +126,14 @@ export default function HomeScreen() {
 
         await onDisplayNotification();
       }} />
+      {/* <Button title="Read Counter" onPress={async () => {
+        const value = await DatabaseController.readCounter();
+        setCounter(value);
+      }} />
+      <Button title="Write Counter" onPress={async () => {
+        await DatabaseController.writeCounter();
+      }} />
+      <Text style={{ fontSize: 32, fontWeight: 'bold', paddingBottom: 16 }}>Counter: {counter}</Text> */}
     </View>
   );
 }

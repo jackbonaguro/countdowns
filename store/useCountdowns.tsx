@@ -1,7 +1,9 @@
-import { refreshCountdowns, storeCountdown, updateCountdown } from '@/controllers/storageController';
+import { refreshCountdowns, createCountdown, updateCountdown, deleteCountdown } from '@/controllers/DatabaseController';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSQLiteContext } from 'expo-sqlite';
 
 export type Countdown = {
+  id: number;
   title: string;
   date: Date;
   time?: Date;
@@ -11,37 +13,51 @@ export type Countdown = {
 
 // Query hook to fetch countdowns
 export const useCountdowns = () => {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
+  const db = useSQLiteContext();
 
   return useQuery<(Countdown | undefined)[]>({
     queryKey: ['countdowns'],
-    queryFn: async () => {
-      const countdowns = await refreshCountdowns(queryClient);
-      return countdowns;
-    },
+    queryFn: async () => (await refreshCountdowns(db)),
   });
 };
 
 export const useCreateCountdown = () => {
   const queryClient = useQueryClient();
+  const db = useSQLiteContext();
 
   return useMutation({
-    mutationFn: async (countdown: Countdown) => {
-      await storeCountdown(countdown, queryClient);
-      await queryClient.invalidateQueries({ queryKey: ['countdowns'] });
+    mutationFn: async (countdown: Omit<Countdown, 'id'>) => {
+      try {
+        await createCountdown(countdown, db);
+        await queryClient.invalidateQueries({ queryKey: ['countdowns'] });
+      } catch (error) {
+        console.error('Error creating countdown', error);
+      }
     },
   });
 };
 
 export const useEditCountdown = () => {
   const queryClient = useQueryClient();
+  const db = useSQLiteContext();
 
   return useMutation({
-    mutationFn: async ({ index, countdown }: { index: number, countdown: Countdown }) => {
-      await updateCountdown(index, countdown, queryClient);
+    mutationFn: async ({ countdown }: { countdown: Countdown }) => {
+      await updateCountdown(countdown, db);
       await queryClient.invalidateQueries({ queryKey: ['countdowns'] });
     },
   });
 };
 
+export const useDeleteCountdown = () => {
+  const queryClient = useQueryClient();
+  const db = useSQLiteContext();
 
+  return useMutation({
+    mutationFn: async (index: number) => {
+      await deleteCountdown(index, db);
+      await queryClient.invalidateQueries({ queryKey: ['countdowns'] });
+    },
+  });
+};
