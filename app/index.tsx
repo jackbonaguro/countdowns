@@ -7,6 +7,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import notifee from '@notifee/react-native';
 import * as DatabaseController from '@/controllers/DatabaseController';
+import * as NotificationController from '@/controllers/NotificationController';
 import { useSQLiteContext } from 'expo-sqlite';
 
 Notifications.setNotificationHandler({
@@ -84,13 +85,15 @@ export default function HomeScreen() {
   // Initialize all controllers
   useEffect(() => {
     (async () => {
-      if (DatabaseController.isInitialized()) return;
-      await DatabaseController.initialize();
-      await DatabaseController.refreshCountdowns(db);
+      if (!DatabaseController.isInitialized()) {
+        await DatabaseController.initialize();
+        await DatabaseController.refreshCountdowns(db);
+      }
+      if (!NotificationController.isInitialized()) {
+        await NotificationController.initialize();
+      }
     })();
   }, []);
-
-  // const [counter, setCounter] = useState<number>();
 
   const [sort, setSort] = useState<'asc' | 'desc'>('asc');
 
@@ -98,6 +101,7 @@ export default function HomeScreen() {
     <View style={{ flex: 1 }}>
       <View style={{
         paddingHorizontal: 16,
+        paddingBottom: 8,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -110,7 +114,8 @@ export default function HomeScreen() {
         </Link>
       </View>
       <ScrollView style={{
-        padding: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
       }}>
         <Text style={styles.text}>Countdowns</Text>
         <CountdownsList sort={sort}/>
@@ -126,14 +131,6 @@ export default function HomeScreen() {
 
         await onDisplayNotification();
       }} />
-      {/* <Button title="Read Counter" onPress={async () => {
-        const value = await DatabaseController.readCounter();
-        setCounter(value);
-      }} />
-      <Button title="Write Counter" onPress={async () => {
-        await DatabaseController.writeCounter();
-      }} />
-      <Text style={{ fontSize: 32, fontWeight: 'bold', paddingBottom: 16 }}>Counter: {counter}</Text> */}
     </View>
   );
 }

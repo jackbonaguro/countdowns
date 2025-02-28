@@ -8,7 +8,7 @@ export type Countdown = {
   date: Date;
   time?: Date;
   emoji: string;
-  hue: number;
+  color: string;
 }
 
 // Query hook to fetch countdowns

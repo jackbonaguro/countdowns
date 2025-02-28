@@ -7,7 +7,7 @@ import Button from "./Button";
 import CountdownPreview, { CountdownPreviewSkeleton } from "./CountdownPreview";
 import EmojiInput from "./EmojiInput";
 import { Countdown } from "@/store/useCountdowns";
-import HuePicker from "./HuePicker";
+import ColorPicker from "./ColorPicker";
 
 const Form = styled.View`
   gap: 8px;
@@ -40,10 +40,10 @@ export default function CountdownEditor(props: {
   const [emoji, setEmoji] = useState<string | undefined>(props.initialCountdown?.emoji);
   const [showEmoji, setShowEmoji] = useState(false);
 
-  const [hue, setHue] = useState<number | undefined>(props.initialCountdown?.hue);
+  const [color, setColor] = useState<string | undefined>(props.initialCountdown?.color);
 
 
-  const previewReady = !!title && !!date && !!emoji && typeof hue !== 'undefined';
+  const previewReady = !!title && !!date && !!emoji && typeof color !== 'undefined';
 
   useEffect(() => {
     props.onValidate({
@@ -51,9 +51,9 @@ export default function CountdownEditor(props: {
       date: date ?? new Date(),
       time,
       emoji: emoji ?? '',
-      hue: hue ?? 0,
+      color: color ?? '#dddddd'
     }, previewReady);
-  }, [previewReady, title, date, time, emoji, hue]);
+  }, [previewReady, title, date, time, emoji, color]);
 
   return (
     <Form>
@@ -113,7 +113,7 @@ export default function CountdownEditor(props: {
       )}
 
       <FormLabel>Hue</FormLabel>
-      <HuePicker hue={hue} onHueChange={setHue} />
+      <ColorPicker color={color} onColorChange={setColor} />
 
       <FormLabel>Preview</FormLabel>
       {previewReady && <CountdownPreview countdown={{
@@ -121,7 +121,7 @@ export default function CountdownEditor(props: {
         date,
         time,
         emoji,
-        hue,
+        color,
       }} />}
       {!previewReady && <CountdownPreviewSkeleton partialCountdown={{}} />}
     </Form>

@@ -55,15 +55,13 @@ export async function refreshCountdowns(db: SQLite.SQLiteDatabase) {
   const countdownModels = await db.getAllAsync('SELECT * FROM countdowns') as CountdownModel[];
 
   const countdowns: Countdown[] = countdownModels.map(model => {
-    const hue = parseInt(model.color.split(',')[0].slice(4));
-
     return {
       id: model.id,
       title: model.title,
       date: new Date(model.date),
       time: model.time ? new Date(model.time) : undefined,
       emoji: model.emoji,
-      hue,
+      color: model.color,
     };
   });
 
@@ -74,7 +72,6 @@ export async function createCountdown(countdown: Omit<Countdown, 'id'>, db: SQLi
   const createdAt = new Date().toISOString();
   const date = countdown.date.toISOString();
   const time = countdown.time?.toISOString() || null;
-  const color = `hsl(${countdown.hue}, 100%, 50%)`;
 
   await db.runAsync(
     'INSERT INTO countdowns (title, created_at, date, time, emoji, color, archived) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -84,7 +81,7 @@ export async function createCountdown(countdown: Omit<Countdown, 'id'>, db: SQLi
       date,
       time,
       countdown.emoji,
-      color,
+      countdown.color,
       false
     ]
   );
@@ -93,7 +90,6 @@ export async function createCountdown(countdown: Omit<Countdown, 'id'>, db: SQLi
 export async function updateCountdown(countdown: Countdown, db: SQLite.SQLiteDatabase) {
   const date = countdown.date.toISOString();
   const time = countdown.time?.toISOString() || null;
-  const color = `hsl(${countdown.hue}, 100%, 50%)`;
 
   await db.runAsync(
     'UPDATE countdowns SET title = ?, date = ?, time = ?, emoji = ?, color = ?, archived = ? WHERE id = ?',
@@ -102,7 +98,7 @@ export async function updateCountdown(countdown: Countdown, db: SQLite.SQLiteDat
       date,
       time,
       countdown.emoji,
-      color,
+      countdown.color,
       false,
       countdown.id
     ],

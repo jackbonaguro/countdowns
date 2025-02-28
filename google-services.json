@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "56193570045",
+    "project_id": "countdowns-508b6",
+    "storage_bucket": "countdowns-508b6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:56193570045:android:27073b9ebe535c103dda94",
+        "android_client_info": {
+          "package_name": "com.anonymous.countdowns"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBb0Z2zNwfJks6I18Cyc6pTQqTRkoYY8NI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

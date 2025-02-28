@@ -1,9 +1,10 @@
 import Button from "@/components/Button";
 import CountdownEditor from "@/components/CountdownEditor";
 import { router } from "expo-router";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useState } from "react";
 import { Countdown, useCreateCountdown } from "@/store/useCountdowns";
+import BigButton from "@/components/BigButton";
 export default function CreateCountdown() {
   const [valid, setValid] = useState(false);
   const [draftCountdown, setDraftCountdown] = useState<Omit<Countdown, 'id'>>();
@@ -33,28 +34,16 @@ export default function CreateCountdown() {
           }} />
         </ScrollView>
       </View>
-      <View style={{
-        padding: 16,
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
-      }}>
-        <TouchableOpacity
+      <View style={{ padding: 16 }}>
+        <BigButton
           disabled={!valid}
-          style={{
-            padding: 16,
-            backgroundColor: valid ? 'green' : 'gray',
-            borderRadius: 16,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          title="Start the Countdown!"
           onPress={async () => {
             if (!draftCountdown) return;
             await createCountdown(draftCountdown);
             router.back();
           }}
-        >
-          <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Start the Countdown!</Text>
-        </TouchableOpacity>
+        />
       </View>
     </View>
   )

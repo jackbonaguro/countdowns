@@ -5,6 +5,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
 import { Countdown, useCountdowns, useDeleteCountdown, useEditCountdown } from "@/store/useCountdowns";
 import { useSQLiteContext } from "expo-sqlite";
+import BigButton from "@/components/BigButton";
 export default function EditCountdown() {
   const [valid, setValid] = useState(false);
   const [draftCountdown, setDraftCountdown] = useState<Countdown>();
@@ -51,20 +52,10 @@ export default function EditCountdown() {
             }} />
         </ScrollView>
       </View>
-      <View style={{
-        padding: 16,
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
-      }}>
-        <TouchableOpacity
+      <View style={{ padding: 16 }}>
+        <BigButton
           disabled={!valid}
-          style={{
-            padding: 16,
-            backgroundColor: valid ? 'green' : 'gray',
-            borderRadius: 16,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          title="Update Countdown!"
           onPress={async () => {
             if (!draftCountdown) return;
             await editCountdown({
@@ -72,9 +63,7 @@ export default function EditCountdown() {
             });
             router.back();
           }}
-        >
-          <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>Update Countdown!</Text>
-        </TouchableOpacity>
+        />
       </View>
     </View>
   )

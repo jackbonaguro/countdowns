@@ -4,6 +4,7 @@ import { differenceInDays, differenceInHours, differenceInMinutes, differenceInS
 import { useEffect, useState } from 'react';
 import { NumberRoll } from './NumberRoll';
 import { Link } from 'expo-router';
+import { styles } from '@/styles';
 
 type CountdownParams = {
   differenceNumber: number;
@@ -73,9 +74,6 @@ export default function CountdownPreview({
   const fixedDate = format(combinedDate, 'eee, d MMM yyyy');
   const fixedTime = time ? format(combinedDate, ' h:mm a') : '';
 
-  const hue = countdown.hue;
-  const backgroundColor = `hsl(${hue}, 75%, 50%)`;
-
   useEffect(() => {
     updateCountdown();
     const updateInterval = setInterval(updateCountdown, 1000);
@@ -87,13 +85,14 @@ export default function CountdownPreview({
   return (
     <Link href={typeof id !== 'undefined' ? `/editCountdown/${id}` : '/'} asChild disabled={typeof id === 'undefined'}>
       <TouchableOpacity>
-        <View 
+        <View
           style={{
             // padding: 16,
             borderRadius: 8,
-            backgroundColor,
+            backgroundColor: countdown.color,
             flexDirection: 'row',
             justifyContent: 'space-between',
+            ...styles.shadow,
           }}
         >
           <View 
