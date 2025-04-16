@@ -9,14 +9,25 @@ export type Countdown = {
   time?: Date;
   emoji: string;
   color: string;
+  archived?: boolean;
 }
+
+// Util function to get combined date & time
+export const getCountdownDatetime = (countdown: Pick<Countdown, 'date' | 'time'>) => {
+  return new Date(
+    countdown.date.getFullYear(),
+    countdown.date.getMonth(),
+    countdown.date.getDate(),
+    countdown.time?.getHours() ?? 0,
+    countdown.time?.getMinutes() ?? 0
+  );
+};
 
 // Query hook to fetch countdowns
 export const useCountdowns = () => {
-  // const queryClient = useQueryClient();
   const db = useSQLiteContext();
 
-  return useQuery<(Countdown | undefined)[]>({
+  return useQuery<Countdown[]>({
     queryKey: ['countdowns'],
     queryFn: async () => (await refreshCountdowns(db)),
   });

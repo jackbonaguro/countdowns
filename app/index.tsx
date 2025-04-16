@@ -1,6 +1,6 @@
 import Button from '@/components/Button';
 import CountdownPreview from '@/components/CountdownPreview';
-import { useCountdowns, Countdown } from '@/store/useCountdowns';
+import { useCountdowns, Countdown, getCountdownDatetime } from '@/hooks/useCountdowns';
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -10,45 +10,85 @@ import * as NotificationController from '@/controllers/NotificationController';
 import { useSQLiteContext } from 'expo-sqlite';
 import SettingsForm from '@/components/SettingsForm';
 import Modal from '@/components/Modal';
-
+import { getDeviceToken } from '@/controllers/NotificationController';
+import * as APIController from '@/controllers/APIController';
+import StatusFooter from '@/components/StatusFooter';
+import SortToggle from '@/components/SortToggle';
+import ArchiveTabSwitcher from '@/components/ArchiveTabSwitcher';
+import styled from 'styled-components/native';
 // Do this as soon as possible when app is loaded, not in the component's lifecycle.
 NotificationController.subscribeToBackgroundNotifications();
 
-function CountdownsList(props: { sort: 'asc' | 'desc' }) {
+export enum CountdownCategory {
+  ONGOING = 'ongoing',
+  PAST = 'past',
+  ARCHIVED = 'archived',
+};
+
+type CountdownWithIndex = {
+  index: number;
+  countdown: Countdown;
+};
+
+function CountdownsList(props: { sort: 'asc' | 'desc'; category: CountdownCategory }) {
   const { data: countdowns, isLoading } = useCountdowns();
 
-  const countdownsWithIndex: undefined | {
-    index: number;
-    countdown?: Countdown;
-  }[] = countdowns?.map((countdown, index) => ({
-    index,
-    countdown,
-  })) ?? undefined;
-
-  const countdownsSorted = countdownsWithIndex?.sort((a, b) => {
-    if (!a.countdown || !b.countdown) return 0;
-    if (props.sort === 'asc') {
-      return b.countdown.date.getTime() - a.countdown.date.getTime();
-    } else {
-      return a.countdown.date.getTime() - b.countdown.date.getTime();
+  // Filtered list as state, since clock updates can change it
+  const [filteredCountdowns, setFilteredCountdowns] = useState<Countdown[]>();
+  const updateFilteredCountdowns = () => {
+    let tempCountdowns: Countdown[] | undefined;
+    if (props.category === CountdownCategory.PAST) {
+      tempCountdowns = countdowns?.filter((c) => {
+        const dateTime = getCountdownDatetime(c).getTime();
+        return !c.archived && dateTime < Date.now();
+      });
+    } else if (props.category === CountdownCategory.ONGOING) {
+      tempCountdowns = countdowns?.filter((c) => {
+        const dateTime = getCountdownDatetime(c).getTime();
+        return !c.archived && dateTime >= Date.now();
+      });
+    } else { // ARCHIVED
+      tempCountdowns = countdowns?.filter((c) => {
+        return !!c.archived;
+      });
     }
+    return setFilteredCountdowns(tempCountdowns);
+  };
+  useEffect(() => {
+    updateFilteredCountdowns();
+    const updateInterval = setInterval(updateFilteredCountdowns, 1000);
+    return () => clearInterval(updateInterval);
+  }, [props.category, countdowns]);
+
+  // Now that stateful filtering is done, sort for the final list
+  const sortedCountdowns = filteredCountdowns?.sort((a, b) => {
+    const aDatetime = getCountdownDatetime(a).getTime();
+    const bDatetime = getCountdownDatetime(b).getTime();
+
+    if (props.sort === 'asc') return bDatetime - aDatetime;
+    return aDatetime - bDatetime;
   });
 
   // @ts-ignore
-  if (isLoading || !countdownsSorted) return (<></>);
+  if (isLoading || !sortedCountdowns) return (<></>);
 
   return (
     <View style={{
       rowGap: 16, 
       flex: 1,
     }}>
-      {countdownsSorted.map((cdi, index) => {
-        if (!cdi.countdown) return null;
-        return (<CountdownPreview key={index} countdown={cdi.countdown} id={cdi.countdown.id} />);
+      {sortedCountdowns.map((c) => {
+        return (<CountdownPreview key={c.id} countdown={c} id={c.id} />);
       })}
     </View>
   );
 }
+
+const NavButtonContainer = styled.View`
+  flex: 1;
+  flexDirection: row;
+  alignItems: center;
+`;
 
 export default function HomeScreen() {
   const db = useSQLiteContext();
@@ -66,8 +106,22 @@ export default function HomeScreen() {
     })();
   }, []);
 
-  const [sort, setSort] = useState<'asc' | 'desc'>('asc');
+  // Register device on app load
+  const [deviceToken, setDeviceToken] = useState<string>();
+  useEffect(() => {
+    getDeviceToken().then(setDeviceToken);
+    if (deviceToken) {
+      APIController.register(deviceToken);
+    }
+  }, [deviceToken]);
+
+  const [sort, setSort] = useState<'asc' | 'desc'>('desc');
+  const [pastSort, setPastSort] = useState<'asc' | 'desc'>('asc');
+  const [archivedSort, setArchivedSort] = useState<'asc' | 'desc'>('asc');
+  const [showingArchived, setShowingArchived] = useState<boolean>(false);
+
   const [settingsVisible, setSettingsVisible] = useState(false);
+
   return (
     <View style={{ flex: 1, justifyContent: 'space-between' }}>
       <View style={{ flex: 1 }}>
@@ -78,57 +132,94 @@ export default function HomeScreen() {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-          <Button title="Sort" onPress={async () => {
-            setSort(sort === 'asc' ? 'desc' : 'asc');
-          }} />
-          <Link href='/createCountdown' asChild>
-            <Button title="Add" onPress={async () => {}} />
-          </Link>
+          <NavButtonContainer style={{ justifyContent: 'flex-start' }}>
+            <Button title="Settings" onPress={async() => {
+              setSettingsVisible(true);
+            }} />
+          </NavButtonContainer>
+          <ArchiveTabSwitcher archived={showingArchived} onChange={setShowingArchived} />
+          <NavButtonContainer style={{ justifyContent: 'flex-end' }}>
+            <Link href='/createCountdown' asChild>
+              <Button title="Add" onPress={async () => {}} />
+            </Link>
+          </NavButtonContainer>
         </View>
         <ScrollView style={{
           paddingHorizontal: 16,
           paddingVertical: 8,
+          display: showingArchived ? 'none' : 'flex'
         }}>
-          <Text style={styles.text}>Countdowns</Text>
-          <CountdownsList sort={sort}/>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingBottom: 16,
+          }}>
+            <Text style={styles.header}>Countdowns</Text>
+            <SortToggle
+              label={sort === 'desc' ? 'Closest' : 'Furthest'}
+              onPress={() => setSort(sort === 'asc' ? 'desc' : 'asc')}
+              ascending={sort === 'asc'}
+            ></SortToggle>
+          </View>
+          <CountdownsList sort={sort} category={CountdownCategory.ONGOING}/>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }} >
+            <Text style={[styles.sectionHeader, {
+              paddingVertical: 16,
+            }]}>Past</Text>
+            <SortToggle
+              label={pastSort === 'desc' ? 'Distant' : 'Recent'}
+              onPress={() => setPastSort(pastSort === 'asc' ? 'desc' : 'asc')}
+              ascending={pastSort === 'asc'}
+            ></SortToggle>
+          </View>
+          <CountdownsList sort={pastSort} category={CountdownCategory.PAST}/>
         </ScrollView>
-      </View>
-      {/* <Button title="Test Notification" onPress={async () => {
-        Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'Look at that notification',
-            body: "I'm so proud of myself!",
-          },
-          trigger: null,
-        });
-
-        await onDisplayNotification();
-      }} /> */}
-      <View style={{
-        flexDirection: 'row',
-        paddingHorizontal: 16,
-        alignItems: 'center',
-        justifyContent: 'flex-end'
-      }}>
-        <TouchableOpacity onPress={async () => {
-          setSettingsVisible(true);
+        <ScrollView style={{
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          display: showingArchived ? 'flex' : 'none'
         }}>
-          <Text style={{ fontSize: 38, color: 'grey', fontWeight: 'bold', opacity: 0.5 }}>⚙️</Text>
-        </TouchableOpacity>
-        <Modal
-          visible={settingsVisible}
-        >
-          <SettingsForm onClose={() => setSettingsVisible(false)} />
-        </Modal>
+          <View style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingBottom: 16,
+          }}>
+            <Text style={styles.header}>Archived</Text>
+            <SortToggle
+              label={archivedSort === 'desc' ? 'Oldest' : 'Newest'}
+              onPress={() => setArchivedSort(archivedSort === 'asc' ? 'desc' : 'asc')}
+              ascending={archivedSort === 'asc'}
+            ></SortToggle>
+          </View>
+          <CountdownsList sort={archivedSort} category={CountdownCategory.ARCHIVED}/>
+        </ScrollView>
+        <StatusFooter />
       </View>
+
+      {/* End of main content, now modals */}
+
+      <Modal
+        visible={settingsVisible}
+      >
+        <SettingsForm onClose={() => setSettingsVisible(false)} />
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  text: {
+  header: {
     fontSize: 32,
     fontWeight: 'bold',
-    paddingBottom: 16,
   },
+  sectionHeader: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  }
 });

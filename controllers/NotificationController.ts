@@ -1,5 +1,5 @@
 
-import messaging from '@react-native-firebase/messaging';
+import { getMessaging, AuthorizationStatus } from '@react-native-firebase/messaging';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
 let initialized = false;
@@ -19,25 +19,27 @@ export async function requestUserPermission() {
   if (Platform.OS === 'android') {
     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
   } else if (Platform.OS === 'ios') {
-    const authStatus = await messaging().requestPermission();
+    const authStatus = await getMessaging().requestPermission();
     const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      authStatus === AuthorizationStatus.AUTHORIZED ||
+      authStatus === AuthorizationStatus.PROVISIONAL;
 
     if (enabled) {
-      console.log('Authorization status:', authStatus);
+      console.log('Notification Permission:', Object.keys(AuthorizationStatus).find(
+        (k: string) => AuthorizationStatus[k as keyof typeof AuthorizationStatus] === authStatus
+      ));
     }
   }
 }
 
 let unsubscribe: () => void;
 export async function subscribeToNotifications() {
-  unsubscribe = messaging().onMessage((remoteMessage) => {
+  unsubscribe = getMessaging().onMessage((remoteMessage) => {
     Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
   });
 }
 export async function subscribeToBackgroundNotifications() {
-  messaging().setBackgroundMessageHandler(async remoteMessage => {
+  getMessaging().setBackgroundMessageHandler(async remoteMessage => {
     // Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
     console.log('A new background FCM message arrived!', JSON.stringify(remoteMessage));
   });
@@ -45,7 +47,7 @@ export async function subscribeToBackgroundNotifications() {
 
 export async function getDeviceToken() {
   try {
-    const token = await messaging().getToken();
+    const token = await getMessaging().getToken();
     return token;
   } catch (error) {
     console.error('Error getting device token', error);

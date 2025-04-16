@@ -3,7 +3,7 @@ import CountdownEditor from "@/components/CountdownEditor";
 import { router, useLocalSearchParams } from "expo-router";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useState } from "react";
-import { Countdown, useCountdowns, useDeleteCountdown, useEditCountdown } from "@/store/useCountdowns";
+import { Countdown, useCountdowns, useDeleteCountdown, useEditCountdown } from "@/hooks/useCountdowns";
 import { useSQLiteContext } from "expo-sqlite";
 import BigButton from "@/components/BigButton";
 export default function EditCountdown() {
@@ -48,6 +48,7 @@ export default function EditCountdown() {
           <Text style={{ fontSize: 32, fontWeight: 'bold' }}>Edit Countdown</Text>
           <CountdownEditor
             initialCountdown={countdown}
+            allowArchive={true}
             onValidate={(countdown, valid) => {
               setDraftCountdown({
                 ...countdown,

@@ -5,14 +5,16 @@ import { formatDate } from "date-fns";
 import Button from "./Button";
 import CountdownPreview, { CountdownPreviewSkeleton } from "./CountdownPreview";
 import EmojiInput from "./EmojiInput";
-import { Countdown } from "@/store/useCountdowns";
+import { Countdown } from "@/hooks/useCountdowns";
 import ColorPicker from "./ColorPicker";
 import Form from "./Form";
 import FormLabel from "./FormLabel";
 import FormInput from "./FormInput";
+import Checkbox from 'expo-checkbox';
 
 export default function CountdownEditor(props: {
   initialCountdown?: Omit<Countdown, 'id'>;
+  allowArchive?: boolean;
   onValidate: (countdown: Omit<Countdown, 'id'>, valid: boolean) => void;
 }) {
   const [title, setTitle] = useState<string | undefined>(props.initialCountdown?.title);
@@ -30,6 +32,7 @@ export default function CountdownEditor(props: {
 
   const [color, setColor] = useState<string | undefined>(props.initialCountdown?.color);
 
+  const [archived, setArchived] = useState<boolean>(props.initialCountdown?.archived || false);
 
   const previewReady = !!title && !!date && !!emoji && typeof color !== 'undefined';
 
@@ -39,9 +42,10 @@ export default function CountdownEditor(props: {
       date: date ?? new Date(),
       time,
       emoji: emoji ?? '',
-      color: color ?? '#dddddd'
+      color: color ?? '#dddddd',
+      archived: props.allowArchive ? archived : undefined,
     }, previewReady);
-  }, [previewReady, title, date, time, emoji, color]);
+  }, [previewReady, title, date, time, emoji, color, archived, props.allowArchive]);
 
   return (
     <Form>
@@ -103,6 +107,11 @@ export default function CountdownEditor(props: {
       <FormLabel>Hue</FormLabel>
       <ColorPicker color={color} onColorChange={setColor} />
 
+      {props.allowArchive && <View>
+        <FormLabel>Archive</FormLabel>
+        <Checkbox style={{ marginVertical: 8 }} value={archived} onValueChange={() => setArchived(!archived)} />
+      </View>}
+
       <FormLabel>Preview</FormLabel>
       {previewReady && <CountdownPreview countdown={{
         title,
@@ -110,6 +119,7 @@ export default function CountdownEditor(props: {
         time,
         emoji,
         color,
+        archived,
       }} />}
       {!previewReady && <CountdownPreviewSkeleton partialCountdown={{}} />}
     </Form>

@@ -1,4 +1,5 @@
-import { Countdown } from '@/store/useCountdowns';
+import { Countdown } from '@/hooks/useCountdowns';
+import { type Preferences } from '@/hooks/usePreferences';
 import { QueryClient } from '@tanstack/react-query';
 import * as SQLite from 'expo-sqlite';
 
@@ -12,6 +13,7 @@ export async function initialize() {
   db = await SQLite.openDatabaseAsync('countdowns.db');
 
   await setupCountdownsIfNeeded();
+  await setupPreferencesIfNeeded();
 
   initialized = true;
 }
@@ -62,6 +64,7 @@ export async function refreshCountdowns(db: SQLite.SQLiteDatabase) {
       time: model.time ? new Date(model.time) : undefined,
       emoji: model.emoji,
       color: model.color,
+      archived: model.archived,
     };
   });
 
@@ -82,7 +85,7 @@ export async function createCountdown(countdown: Omit<Countdown, 'id'>, db: SQLi
       time,
       countdown.emoji,
       countdown.color,
-      false
+      (typeof countdown.archived === 'boolean') ? countdown.archived : false,
     ]
   );
 }
@@ -99,7 +102,7 @@ export async function updateCountdown(countdown: Countdown, db: SQLite.SQLiteDat
       time,
       countdown.emoji,
       countdown.color,
-      false,
+      (typeof countdown.archived === 'boolean') ? countdown.archived: false,
       countdown.id
     ],
   );
@@ -109,31 +112,63 @@ export async function deleteCountdown(id: number, db: SQLite.SQLiteDatabase) {
   await db.runAsync('DELETE FROM countdowns WHERE id = ?', [id]);
 }
 
-/* async function setupCountersExample() {
-  // NOTE: This logs databases, but IDK what to do if main isn't connected so it's not really useful.
-  // console.log('pragma database_list', await db.getAllAsync('PRAGMA database_list'));
+export const DEFAULT_PREFERENCES: Preferences = {
+  baseUrl: 'https://countdowns.jackbonaguro.com'
+};
 
-  // Check if the counters table exists
+type PreferencesModel = {
+  id: number;
+  data: string;
+};
+
+async function setupPreferencesIfNeeded() {
   const tables = await db.getAllAsync("SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;") as { name: string }[];
-  const counterTable = tables?.find(table => table.name === 'counter');
-  if (!counterTable) {
-    await db.getAllAsync("CREATE TABLE IF NOT EXISTS counter (id INTEGER PRIMARY KEY AUTOINCREMENT, count INTEGER NOT NULL DEFAULT 0);");
+  const preferencesTable = tables?.find(table => table.name === 'preferences');
+  if (!preferencesTable) {
+    await db.getAllAsync(`CREATE TABLE IF NOT EXISTS preferences (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      data TEXT NOT NULL
+    );`);
+
+    console.log('Created preferences table');
   }
 
-  // Check if counter row exists
-  const counterRow = await db.getFirstAsync('SELECT * FROM counter');
-  if (!counterRow) {
-    await db.execAsync('INSERT INTO counter (count) VALUES (0)');
+  // Since this is a singleton table, we'll go ahead and insert an empty preferences object as well
+  const preferences = await getPreferences(db);
+  if (!preferences) {
+    console.log('creating preferences row');
+    try {
+      await db.runAsync(
+        `INSERT INTO preferences (data) VALUES (?)`,
+        [ JSON.stringify(DEFAULT_PREFERENCES) ]
+      );
+    } catch (e) {
+      console.error(e);
+    }
+    console.log('Created preferences row');
   }
 }
 
-export async function readCounter(): Promise<number> {
-  const result = await db.getFirstAsync('SELECT * FROM counter') as { id: number, count: number };
-  return result.count;
+export async function getPreferences(db: SQLite.SQLiteDatabase): Promise<Preferences | undefined> {
+  // await db.runAsync('DROP TABLE preferences');
+  const preferencesModel = await db.getFirstAsync(`SELECT * FROM preferences`) as PreferencesModel | null;
+  if (!preferencesModel) return;
+  return JSON.parse(preferencesModel.data) as Preferences;
 }
 
-export async function writeCounter() {
-  const result = await db.execAsync('UPDATE counter SET count = count + 1');
-  console.log('writeCounter', result);
-} */
-
+export async function updatePreferences(patch: any, db: SQLite.SQLiteDatabase): Promise<void> {
+  const existingPreferences = await getPreferences(db);
+  const patchedData = {
+    ...existingPreferences,
+    ...patch
+  };
+  try {
+    await db.getFirstAsync(
+      `UPDATE preferences SET data = ?`,
+      [ JSON.stringify(patchedData) ]
+    );
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}

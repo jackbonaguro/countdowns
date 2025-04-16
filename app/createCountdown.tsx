@@ -3,7 +3,7 @@ import CountdownEditor from "@/components/CountdownEditor";
 import { router } from "expo-router";
 import { ScrollView, Text, View } from "react-native";
 import { useState } from "react";
-import { Countdown, useCreateCountdown } from "@/store/useCountdowns";
+import { Countdown, useCreateCountdown } from "@/hooks/useCountdowns";
 import BigButton from "@/components/BigButton";
 export default function CreateCountdown() {
   const [valid, setValid] = useState(false);

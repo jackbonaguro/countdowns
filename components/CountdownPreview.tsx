@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import { type Countdown } from '@/store/useCountdowns';
+import { getCountdownDatetime, type Countdown } from '@/hooks/useCountdowns';
 import { differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds, format, formatDistance, formatRelative, set, subDays } from 'date-fns'
 import { useEffect, useState } from 'react';
 import { NumberRoll } from './NumberRoll';
@@ -42,19 +42,19 @@ export default function CountdownPreview({
   const updateCountdown = () => {
     const now = Date.now();
   
-    let differenceNumber = differenceInDays(combinedDate, now);
+    let differenceNumber = differenceInDays(datetime, now);
     let differenceUnit = 'day';
   
     if (Math.abs(differenceNumber) < 1) {
-      differenceNumber = differenceInHours(combinedDate, now);
+      differenceNumber = differenceInHours(datetime, now);
       differenceUnit = 'hour';
     }
     if (Math.abs(differenceNumber) < 1) {
-      differenceNumber = differenceInMinutes(combinedDate, now);
+      differenceNumber = differenceInMinutes(datetime, now);
       differenceUnit = 'minute';
     }
     if (Math.abs(differenceNumber) < 1) {
-      differenceNumber = differenceInSeconds(combinedDate, now);
+      differenceNumber = differenceInSeconds(datetime, now);
       differenceUnit = 'second';
     }
     const differenceTerm = differenceNumber >= 0 ? 'left' : 'ago';
@@ -67,12 +67,10 @@ export default function CountdownPreview({
     });
   }
 
-  const date = countdown.date;
   const time = countdown.time;
-  const combinedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), time?.getHours() ?? 0, time?.getMinutes() ?? 0);
-
-  const fixedDate = format(combinedDate, 'eee, d MMM yyyy');
-  const fixedTime = time ? format(combinedDate, ' h:mm a') : '';
+  const datetime = getCountdownDatetime(countdown);
+  const fixedDate = format(datetime, 'eee, d MMM yyyy');
+  const fixedTime = time ? format(datetime, ' h:mm a') : '';
 
   useEffect(() => {
     updateCountdown();
