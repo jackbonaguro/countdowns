@@ -3,8 +3,15 @@ import React from "react";
 import { TouchableOpacity } from "react-native";
 import styled from "styled-components/native";
 
+const IOS_BLUE = '#147EFB';
+const makeIOSBlue = (transparency: number): string => {
+  return `rgba(20, 126, 251, ${transparency})`;
+}
+
 const SwitcherContainer = styled.View`
-  backgroundColor: ${colors.surface.secondary};
+  xbackgroundColor: ${colors.surface.secondary};
+  backgroundColor: ${makeIOSBlue(.13)};
+  opacity: 25%;
   flexDirection: row;
   borderRadius: 8px;
 `;
@@ -13,12 +20,14 @@ const SwitchOption = styled.Text`
   fontWeight: bold;
   padding: 8px;
   borderRadius: 8px;
-  color: ${colors.surface.tertiary};
+  xcolor: ${colors.surface.tertiary};
+  color: ${IOS_BLUE};
 `;
 
 const SwitchOptionActive = styled(SwitchOption)`
   color: white;
-  backgroundColor: ${colors.surface.tertiary};
+  xbackgroundColor: ${colors.surface.tertiary};
+  backgroundColor: ${IOS_BLUE};
 `;
 
 const ArchiveTabSwitcher = (props: {

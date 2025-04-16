@@ -5,7 +5,6 @@ import styled from "styled-components/native";
 
 const Container = styled.View`
   flex-direction: row;
-  padding-horizontal: 16px;
   gap: 8px;
   align-items: center;
 `;
@@ -18,11 +17,13 @@ const Indicator = styled.View`
   border-radius: 100px;
 `;
 
-const StatusFooter = () => {
+const StatusFooter = (props: {
+  onPress?: () => void;
+}) => {
   const { status, refetch } = useAPIStatus();
 
   return (
-    <TouchableOpacity onPress={refetch}>
+    <TouchableOpacity onPress={props.onPress || refetch}>
       <Container>
         <LabelText>API Status</LabelText>
         <Indicator style={{

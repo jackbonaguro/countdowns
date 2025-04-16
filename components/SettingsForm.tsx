@@ -7,13 +7,14 @@ import { useState, useEffect } from "react";
 import { getDeviceToken } from "@/controllers/NotificationController";
 import { usePatchPreferences, usePreferences } from "@/hooks/usePreferences";
 import { colors } from "@/styles";
+import StatusFooter from "./StatusFooter";
+import TestNotificationButton from "./TestNotificationButton";
 
 export default function SettingsForm(props: {
   onClose: () => void;
 }) {
   const { data: preferences, isLoading: preferencesLoading } = usePreferences();
 
-  console.log('preferences in settings form', preferences, 'isLoading', preferencesLoading);
   const { mutateAsync: patchPreferences } = usePatchPreferences();
 
   const [deviceToken, setDeviceToken] = useState<string>();
@@ -49,6 +50,8 @@ export default function SettingsForm(props: {
               }}
               disabled={preferencesLoading}
             />
+            <StatusFooter />
+            <TestNotificationButton />
             <Text style={{ color: colors.text.secondary }}>
               {preferencesLoading ? 'Saving...' : 'Saved'}
             </Text>

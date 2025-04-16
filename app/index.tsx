@@ -16,6 +16,7 @@ import StatusFooter from '@/components/StatusFooter';
 import SortToggle from '@/components/SortToggle';
 import ArchiveTabSwitcher from '@/components/ArchiveTabSwitcher';
 import styled from 'styled-components/native';
+import TestNotificationButton from '@/components/TestNotificationButton';
 // Do this as soon as possible when app is loaded, not in the component's lifecycle.
 NotificationController.subscribeToBackgroundNotifications();
 
@@ -132,11 +133,7 @@ export default function HomeScreen() {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-          <NavButtonContainer style={{ justifyContent: 'flex-start' }}>
-            <Button title="Settings" onPress={async() => {
-              setSettingsVisible(true);
-            }} />
-          </NavButtonContainer>
+          <NavButtonContainer />
           <ArchiveTabSwitcher archived={showingArchived} onChange={setShowingArchived} />
           <NavButtonContainer style={{ justifyContent: 'flex-end' }}>
             <Link href='/createCountdown' asChild>
@@ -199,7 +196,10 @@ export default function HomeScreen() {
           </View>
           <CountdownsList sort={archivedSort} category={CountdownCategory.ARCHIVED}/>
         </ScrollView>
-        <StatusFooter />
+
+        <View style={{ paddingHorizontal: 16 }}>
+          <StatusFooter onPress={() => setSettingsVisible(true)} />
+        </View>
       </View>
 
       {/* End of main content, now modals */}
