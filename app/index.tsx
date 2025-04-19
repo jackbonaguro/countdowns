@@ -1,7 +1,7 @@
 import Button from '@/components/Button';
 import CountdownPreview from '@/components/CountdownPreview';
 import { useCountdowns, Countdown, getCountdownDatetime } from '@/hooks/useCountdowns';
-import { Link } from 'expo-router';
+import { Link, useNavigation } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Notifications from 'expo-notifications';
@@ -17,6 +17,7 @@ import SortToggle from '@/components/SortToggle';
 import ArchiveTabSwitcher from '@/components/ArchiveTabSwitcher';
 import styled from 'styled-components/native';
 import TestNotificationButton from '@/components/TestNotificationButton';
+import { ScreenContainer } from './_layout';
 // Do this as soon as possible when app is loaded, not in the component's lifecycle.
 NotificationController.subscribeToBackgroundNotifications();
 
@@ -92,6 +93,11 @@ const NavButtonContainer = styled.View`
 `;
 
 export default function HomeScreen() {
+  const navigation = useNavigation();
+  useEffect(() => {
+    navigation.setOptions({ animation: 'fade' });
+  }, [navigation]);
+
   const db = useSQLiteContext();
 
   // Initialize all controllers
@@ -124,92 +130,94 @@ export default function HomeScreen() {
   const [settingsVisible, setSettingsVisible] = useState(false);
 
   return (
-    <View style={{ flex: 1, justifyContent: 'space-between' }}>
-      <View style={{ flex: 1 }}>
-        <View style={{
-          paddingHorizontal: 16,
-          paddingBottom: 8,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}>
-          <NavButtonContainer />
-          <ArchiveTabSwitcher archived={showingArchived} onChange={setShowingArchived} />
-          <NavButtonContainer style={{ justifyContent: 'flex-end' }}>
-            <Link href='/createCountdown' asChild>
-              <Button title="Add" onPress={async () => {}} />
-            </Link>
-          </NavButtonContainer>
-        </View>
-        <ScrollView style={{
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          display: showingArchived ? 'none' : 'flex'
-        }}>
+    <ScreenContainer>
+      <View style={{ flex: 1, justifyContent: 'space-between' }}>
+        <View style={{ flex: 1 }}>
           <View style={{
+            paddingHorizontal: 16,
+            paddingBottom: 8,
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingBottom: 16,
           }}>
-            <Text style={styles.header}>Countdowns</Text>
-            <SortToggle
-              label={sort === 'desc' ? 'Closest' : 'Furthest'}
-              onPress={() => setSort(sort === 'asc' ? 'desc' : 'asc')}
-              ascending={sort === 'asc'}
-            ></SortToggle>
+            <NavButtonContainer />
+            <ArchiveTabSwitcher archived={showingArchived} onChange={setShowingArchived} />
+            <NavButtonContainer style={{ justifyContent: 'flex-end' }}>
+              <Link href='/createCountdown' asChild>
+                <Button title="Add" onPress={async () => {}} />
+              </Link>
+            </NavButtonContainer>
           </View>
-          <CountdownsList sort={sort} category={CountdownCategory.ONGOING}/>
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }} >
-            <Text style={[styles.sectionHeader, {
-              paddingVertical: 16,
-            }]}>Past</Text>
-            <SortToggle
-              label={pastSort === 'desc' ? 'Distant' : 'Recent'}
-              onPress={() => setPastSort(pastSort === 'asc' ? 'desc' : 'asc')}
-              ascending={pastSort === 'asc'}
-            ></SortToggle>
-          </View>
-          <CountdownsList sort={pastSort} category={CountdownCategory.PAST}/>
-        </ScrollView>
-        <ScrollView style={{
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          display: showingArchived ? 'flex' : 'none'
-        }}>
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            paddingBottom: 16,
+          <ScrollView style={{
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            display: showingArchived ? 'none' : 'flex'
           }}>
-            <Text style={styles.header}>Archived</Text>
-            <SortToggle
-              label={archivedSort === 'desc' ? 'Oldest' : 'Newest'}
-              onPress={() => setArchivedSort(archivedSort === 'asc' ? 'desc' : 'asc')}
-              ascending={archivedSort === 'asc'}
-            ></SortToggle>
-          </View>
-          <CountdownsList sort={archivedSort} category={CountdownCategory.ARCHIVED}/>
-        </ScrollView>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingBottom: 16,
+            }}>
+              <Text style={styles.header}>Countdowns</Text>
+              <SortToggle
+                label={sort === 'desc' ? 'Closest' : 'Furthest'}
+                onPress={() => setSort(sort === 'asc' ? 'desc' : 'asc')}
+                ascending={sort === 'asc'}
+              ></SortToggle>
+            </View>
+            <CountdownsList sort={sort} category={CountdownCategory.ONGOING}/>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }} >
+              <Text style={[styles.sectionHeader, {
+                paddingVertical: 16,
+              }]}>Past</Text>
+              <SortToggle
+                label={pastSort === 'desc' ? 'Distant' : 'Recent'}
+                onPress={() => setPastSort(pastSort === 'asc' ? 'desc' : 'asc')}
+                ascending={pastSort === 'asc'}
+              ></SortToggle>
+            </View>
+            <CountdownsList sort={pastSort} category={CountdownCategory.PAST}/>
+          </ScrollView>
+          <ScrollView style={{
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            display: showingArchived ? 'flex' : 'none'
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingBottom: 16,
+            }}>
+              <Text style={styles.header}>Archived</Text>
+              <SortToggle
+                label={archivedSort === 'desc' ? 'Oldest' : 'Newest'}
+                onPress={() => setArchivedSort(archivedSort === 'asc' ? 'desc' : 'asc')}
+                ascending={archivedSort === 'asc'}
+              ></SortToggle>
+            </View>
+            <CountdownsList sort={archivedSort} category={CountdownCategory.ARCHIVED}/>
+          </ScrollView>
 
-        <View style={{ paddingHorizontal: 16 }}>
-          <StatusFooter onPress={() => setSettingsVisible(true)} />
+          <View style={{ paddingHorizontal: 16 }}>
+            <StatusFooter onPress={() => setSettingsVisible(true)} />
+          </View>
         </View>
+
+        {/* End of main content, now modals */}
+
+        <Modal
+          visible={settingsVisible}
+        >
+          <SettingsForm onClose={() => setSettingsVisible(false)} />
+        </Modal>
       </View>
-
-      {/* End of main content, now modals */}
-
-      <Modal
-        visible={settingsVisible}
-      >
-        <SettingsForm onClose={() => setSettingsVisible(false)} />
-      </Modal>
-    </View>
+    </ScreenContainer>
   );
 }
 
