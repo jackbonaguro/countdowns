@@ -28,7 +28,6 @@ export const usePatchPreferences = () => {
 
   return useMutation({
     mutationFn: async (patch: Partial<Preferences>) => {
-      console.log('updating with patch', patch);
       await updatePreferences(patch, db);
       await queryClient.invalidateQueries({ queryKey: ['preferences'] });
     },

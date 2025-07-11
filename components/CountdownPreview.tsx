@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, TouchableNativeFeedback, Platform, TouchableHighlight } from 'react-native';
 import { getCountdownDatetime, type Countdown } from '@/hooks/useCountdowns';
 import { differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds, format, formatDistance, formatRelative, set, subDays } from 'date-fns'
 import { useEffect, useState } from 'react';
@@ -31,6 +31,8 @@ export function CountdownPreviewSkeleton(props: {
     </View>
   );
 }
+
+const TouchableComponent = Platform.OS === 'ios' ? TouchableOpacity : TouchableNativeFeedback;
 
 export default function CountdownPreview({
   countdown,
@@ -82,10 +84,9 @@ export default function CountdownPreview({
   
   return (
     <Link href={typeof id !== 'undefined' ? `/editCountdown/${id}` : '/'} asChild disabled={typeof id === 'undefined'}>
-      <TouchableOpacity>
+      <TouchableComponent>
         <View
           style={{
-            // padding: 16,
             borderRadius: 8,
             backgroundColor: countdown.color,
             flexDirection: 'row',
@@ -132,7 +133,7 @@ export default function CountdownPreview({
             </Text>
           </View>}
         </View>
-      </TouchableOpacity>
+      </TouchableComponent>
     </Link>
   );
 }

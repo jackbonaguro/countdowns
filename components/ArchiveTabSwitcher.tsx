@@ -11,7 +11,6 @@ const makeIOSBlue = (transparency: number): string => {
 const SwitcherContainer = styled.View`
   xbackgroundColor: ${colors.surface.secondary};
   backgroundColor: ${makeIOSBlue(.13)};
-  opacity: 25%;
   flexDirection: row;
   borderRadius: 8px;
 `;

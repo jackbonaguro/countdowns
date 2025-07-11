@@ -119,6 +119,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
 type PreferencesModel = {
   id: number;
   data: string;
+  deviceId: string;
 };
 
 async function setupPreferencesIfNeeded() {

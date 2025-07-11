@@ -9,6 +9,7 @@ import { usePatchPreferences, usePreferences } from "@/hooks/usePreferences";
 import { colors } from "@/styles";
 import StatusFooter from "./StatusFooter";
 import TestNotificationButton from "./TestNotificationButton";
+import { setAPIUrl } from "@/controllers/APIController";
 
 export default function SettingsForm(props: {
   onClose: () => void;
